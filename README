@@ -1,0 +1,4 @@
+Simple chat. Converts POST requests to Websocket messages.
+Also serves a simple web frontend.
+
+Needs Python 3.5+ and aiohttp.

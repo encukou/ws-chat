@@ -1,0 +1,33 @@
+<html>
+    <body id="chat-container">
+        <div>
+            <input id="message-field" type="text"> <button onclick="do_post()">&gt;</button>
+        </div>
+        <hr>
+        <script type="text/javascript">
+            var ws_url = "ws://" + window.location.hostname + ":" + window.location.port + window.location.pathname + "ws/";
+            var container = document.getElementById("chat-container");
+            var socket = new WebSocket(ws_url);
+            socket.onmessage = function (event) {
+                var element = document.createElement('div');
+                var text = document.createTextNode(event.data);
+                element.appendChild(text);
+                container.appendChild(element);
+            }
+            socket.onclose = function (event) {
+                var element = document.createElement('div');
+                var text = document.createTextNode('Websocket closed. Please reload.');
+                element.appendChild(text);
+                element.setAttribute('style', 'color:red;');
+                container.appendChild(element);
+            }
+
+            function do_post() {
+                var myRequest = new XMLHttpRequest();
+                var message_field_elem = document.getElementById("message-field");
+                myRequest.open('POST', window.location)
+                myRequest.send(message_field_elem.value);
+            }
+        </script>
+    </body>
+</html>
