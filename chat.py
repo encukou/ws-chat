@@ -39,9 +39,20 @@ async def send_message(name, message):
         await queue.put((name, message))
 
 
+class WebSocketResponse(web.WebSocketResponse):
+    # As of this writing, aiohttp's WebSocketResponse doesn't implement
+    # "async for" yet. (Python 3.5.0 has just been releaset)
+    # Let's add the protocol.
+    async def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        return (await self.receive())
+
+
 async def websocket_handler(request):
     name = request.match_info['name']
-    ws = web.WebSocketResponse()
+    ws = WebSocketResponse()
     ws.start(request)
     await send_message('system', '{} joined!'.format(name))
 
@@ -50,8 +61,7 @@ async def websocket_handler(request):
 
     echo_task = asyncio.Task(echo_loop(ws))
 
-    while True:
-        msg = await ws.receive()
+    async for msg in ws:
 
         if msg.tp == aiohttp.MsgType.close:
             print('websocket connection closed')
