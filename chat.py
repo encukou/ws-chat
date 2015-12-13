@@ -98,22 +98,26 @@ app.router.add_route('GET', '/{name}/', chat_page, name='chat_page')
 app.router.add_route('POST', '/{name}/', new_msg)
 app.router.add_route('GET', '/{name}/ws/', websocket_handler)
 
-loop = asyncio.get_event_loop()
-handler = app.make_handler()
-f = loop.create_server(handler, '0.0.0.0', 8080)
-srv = loop.run_until_complete(f)
+def main():
+    loop = asyncio.get_event_loop()
+    handler = app.make_handler()
+    f = loop.create_server(handler, '0.0.0.0', 8080)
+    srv = loop.run_until_complete(f)
 
-async def end():
-    await handler.finish_connections(1.0)
-    srv.close()
-    await srv.wait_closed()
-    await app.finish()
+    async def end():
+        await handler.finish_connections(1.0)
+        srv.close()
+        await srv.wait_closed()
+        await app.finish()
 
-print('serving on', srv.sockets[0].getsockname())
-try:
-    loop.run_forever()
-except KeyboardInterrupt:
-    pass
-finally:
-    loop.run_until_complete(end())
-loop.close()
+    print('serving on', srv.sockets[0].getsockname())
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.run_until_complete(end())
+    loop.close()
+
+if __name__ == '__main__':
+    main()
