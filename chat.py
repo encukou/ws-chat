@@ -69,6 +69,9 @@ async def websocket_handler(request):
         elif msg.tp == aiohttp.MsgType.error:
             print('ws connection closed with exception %s' % ws.exception())
             break
+        elif msg.tp == aiohttp.MsgType.text:
+            message = msg.data
+            await send_message(name, message)
         else:
             print('ws connection received unknown message type %s' % msg.tp)
 
