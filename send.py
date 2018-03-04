@@ -4,7 +4,7 @@ import json
 import sys
 import blessings
 
-import aiohttp
+from aiohttp import ClientSession
 
 NUM_STRIPS = 6
 
@@ -19,8 +19,8 @@ def clamp(n, minimum, maximum):
 
 
 async def send_one(msg):
-    ws = await aiohttp.ws_connect('http://localhost:8080/CLI/ws/')
-    ws.send_str(msg)
+    ws = await ClientSession().ws_connect('http://localhost:8080/CLI/ws/')
+    await ws.send_str(msg)
     await ws.close()
 
 loop = asyncio.get_event_loop()

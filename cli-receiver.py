@@ -19,18 +19,18 @@ def clamp(n, minimum, maximum):
 
 
 async def client():
-    ws = await aiohttp.ws_connect('http://localhost:8080/CLI/ws/')
+    ws = await aiohttp.ClientSession().ws_connect('http://localhost:8080/CLI/ws/')
 
     try:
         while True:
             msg = await ws.receive()
 
-            if msg.tp == aiohttp.MsgType.text:
+            if msg.type == aiohttp.WSMsgType.text:
                 data = msg.data.strip()
                 print(data)
-            elif msg.tp == aiohttp.MsgType.closed:
+            elif msg.type == aiohttp.WSMsgType.closed:
                 break
-            elif msg.tp == aiohttp.MsgType.error:
+            elif msg.type == aiohttp.WSMsgType.error:
                 break
     finally:
         await ws.close()
