@@ -12,5 +12,5 @@ Web interface.
 Run `python3 cli-receiver.py` to see the messages scroll by.
 The server (above) needs to be running for this to work.
 
-Run `python3 send.py "<your message>"` to snd a message from the command line.
+Run `python3 send.py "<your message>"` to send a message from the command line.
 The server (above) needs to be running for this to work.
