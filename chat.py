@@ -11,15 +11,19 @@ history = []
 async def hello(request):
     form_data = await request.post()
     if 'name' in form_data:
-        return web.HTTPFound(app.router['chat_page'].url(parts=form_data))
+        return web.HTTPFound(app.router['chat_page'].url_for(**form_data))
 
     with open('home.html', 'rb') as f:
-        return web.Response(body=f.read())
+        return web.Response(
+            body=f.read().decode('utf8'),
+            content_type='text/html')
 
 
 async def chat_page(request):
     with open('chat.html', 'rb') as f:
-        return web.Response(body=f.read())
+        return web.Response(
+            body=f.read().decode('utf8'),
+            content_type='text/html')
 
 
 async def new_msg(request):
@@ -39,37 +43,26 @@ async def send_message(name, message):
         await queue.put((name, message))
 
 
-class WebSocketResponse(web.WebSocketResponse):
-    # As of this writing, aiohttp's WebSocketResponse doesn't implement
-    # "async for" yet. (Python 3.5.0 has just been releaset)
-    # Let's add the protocol.
-    async def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        return (await self.receive())
-
-
 async def websocket_handler(request):
     name = request.match_info['name']
-    ws = WebSocketResponse()
-    ws.start(request)
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
     await send_message('system', '{} joined!'.format(name))
 
     for message in list(history):
-        ws.send_str(message)
+        await ws.send_str(message)
 
     echo_task = asyncio.Task(echo_loop(ws))
 
     async for msg in ws:
 
-        if msg.tp == aiohttp.MsgType.close:
+        if msg.type == aiohttp.WSMsgType.close:
             print('websocket connection closed')
             break
-        elif msg.tp == aiohttp.MsgType.error:
+        elif msg.type == aiohttp.WSMsgType.error:
             print('ws connection closed with exception %s' % ws.exception())
             break
-        elif msg.tp == aiohttp.MsgType.text:
+        elif msg.type == aiohttp.WSMsgType.text:
             message = msg.data
             await send_message(name, message)
         else:
@@ -78,6 +71,7 @@ async def websocket_handler(request):
     await send_message('system', '{} left!'.format(name))
     echo_task.cancel()
     await echo_task
+    await ws.close()
     return ws
 
 async def echo_loop(ws):
@@ -86,7 +80,7 @@ async def echo_loop(ws):
     try:
         while True:
             name, message = await queue.get()
-            ws.send_str('{}: {}'.format(name, message))
+            await ws.send_str('{}: {}'.format(name, message))
     finally:
         queues.remove(queue)
 
