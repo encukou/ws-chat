@@ -71,6 +71,7 @@ async def websocket_handler(request):
     await send_message('system', '{} left!'.format(name))
     echo_task.cancel()
     await echo_task
+    await ws.close()
     return ws
 
 async def echo_loop(ws):
