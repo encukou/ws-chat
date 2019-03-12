@@ -5,7 +5,8 @@
         </div>
         <hr>
         <script type="text/javascript">
-            var ws_url = "ws://" + window.location.hostname + ":" + window.location.port + window.location.pathname + "ws/";
+            'use strict';
+            var ws_url = `ws://${window.location.hostname}:${window.location.port}${window.location.pathname}ws/`;
             var container = document.getElementById("chat-container");
             var socket = new WebSocket(ws_url);
             socket.onmessage = function (event) {
@@ -23,10 +24,8 @@
             }
 
             function do_post() {
-                var myRequest = new XMLHttpRequest();
                 var message_field_elem = document.getElementById("message-field");
-                myRequest.open('POST', window.location)
-                myRequest.send(message_field_elem.value);
+                socket.send(message_field_elem.value);
             }
         </script>
     </body>

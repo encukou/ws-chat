@@ -1,42 +1,20 @@
 import asyncio
-import re
-import json
 import sys
-import blessings
 
 import aiohttp
 
-NUM_STRIPS = 6
 
-T = blessings.Terminal(stream=sys.stderr)
-
-def clamp(n, minimum, maximum):
-    if n < minimum:
-        return minimum
-    if n > maximum:
-        return maximum
-    return n
-
+URL = 'http://localhost:8080/CLI/ws/'
 
 async def client():
-    ws = await aiohttp.ClientSession().ws_connect('http://localhost:8080/CLI/ws/')
-
-    try:
-        while True:
-            msg = await ws.receive()
-
-            if msg.type == aiohttp.WSMsgType.text:
+    async with aiohttp.ClientSession().ws_connect(URL) as ws:
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.data.strip()
                 print(data)
-            elif msg.type == aiohttp.WSMsgType.closed:
+            elif msg.type == aiohttp.WSMsgType.CLOSED:
                 break
-            elif msg.type == aiohttp.WSMsgType.error:
+            elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
-    finally:
-        await ws.close()
 
-loop = asyncio.get_event_loop()
-try:
-    loop.run_until_complete(client())
-except KeyboardInterrupt:
-    pass
+asyncio.run(client())
